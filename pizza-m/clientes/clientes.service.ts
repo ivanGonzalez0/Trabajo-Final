@@ -1,26 +1,60 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
 import { CreateClienteDto } from './dto/create-cliente.dto';
 import { UpdateClienteDto } from './dto/update-cliente.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Cliente } from './entities/cliente.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class ClientesService {
-  create(createClienteDto: CreateClienteDto) {
-    return 'This action adds a new cliente';
+
+    constructor (
+      @InjectRepository(Cliente)
+      private readonly clienteRepository:Repository<Cliente>,
+    ){}
+      async create(creatClienteDto:CreateClienteDto):Promise<Cliente>{
+        try {
+            const nuevoCliente = this.clienteRepository.create(creatClienteDto);
+        return await this.clienteRepository.save(nuevoCliente);
+        } catch (error) {
+          console.error('error al crear cliente', error)
+          throw new InternalServerErrorException('Error al crear cliente')
+          
+        }
+        
+      }
+    
+    
+  async findAll():Promise <Cliente[]> {
+    return await this.clienteRepository.find();
   }
 
-  findAll() {
-    return `This action returns all clientes`;
+  async findOne(id:number):Promise <Cliente | null> {
+    const cliente = await this.clienteRepository.findOneBy({id})
+    if(!cliente){
+      throw new NotFoundException('cliente no encontrado')
+    }
+
+    return cliente;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} cliente`;
+  async update(id: number, updateClienteDto: UpdateClienteDto){ 
+    const cliente =  await this.clienteRepository.findOne({where :{id}})
+    if(!cliente){
+      throw new NotFoundException('cliente no encontrado')
+    }
+    Object.assign(cliente,updateClienteDto)
+    return await this.clienteRepository.save(cliente)
+
   }
 
-  update(id: number, updateClienteDto: UpdateClienteDto) {
-    return `This action updates a #${id} cliente`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} cliente`;
+  async remove(id: number) {
+    const cliente = await this.clienteRepository.findOne({where:{id}})
+    if(!cliente){
+      throw new NotFoundException('cliente no encontrado')
+    }
+    await this.clienteRepository.remove(cliente)
   }
 }
+
+//preguntar si se borra fisica o logicamente
