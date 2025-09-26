@@ -1,26 +1,58 @@
-import { Injectable } from '@nestjs/common';
-import { CreatePizzaDto } from 'pizzas/dto/create-pizza.dto';
-import { UpdatePizzaDto } from 'pizzas/dto/update-pizza.dto';
+import { Injectable, InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import { CreatePizzaDto } from './dto/create-pizza.dto';
+import { UpdatePizzaDto } from './dto/update-pizza.dto';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Pizza } from './entities/pizza.entity';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class PizzasService {
-  create(createPizzaDto: CreatePizzaDto) {
-    return 'This action adds a new pizza';
+
+  constructor(
+    @InjectRepository(Pizza)
+    private readonly pizzaRepository:Repository<Pizza>,
+  ){}
+
+    async create(creatPizzaDto:CreatePizzaDto):Promise<Pizza>{
+      try{
+        const nuevaPizza = this.pizzaRepository.create(creatPizzaDto);
+        return await this.pizzaRepository.save(nuevaPizza)
+      } catch(error){
+        console.error('Error al crear pizza',error)
+        throw new InternalServerErrorException('Error al crear Pizza')
+      }
+    }
+
+
+
+  async findAll(): Promise<Pizza[]>{
+    return await this.pizzaRepository.find();
   }
 
-  findAll() {
-    return `This action returns all pizzas`;
+  async findOne(id: number): Promise<Pizza | null> {
+    const pizza = await this.pizzaRepository.findOneBy({id})
+    if(!pizza){
+      throw new NotFoundException('Pizza no encontrada')
+    }
+
+    return pizza
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} pizza`;
+  async update(id: number, updatePizzaDto: UpdatePizzaDto) {
+    const pizza = await this.pizzaRepository.findOne({where : {id}})
+    if(!pizza){
+      throw new NotFoundException('Pizza no encontradaa')
+    }
+    Object.assign(pizza,updatePizzaDto)
+    return await this.pizzaRepository.save(pizza)
   }
 
-  update(id: number, updatePizzaDto: UpdatePizzaDto) {
-    return `This action updates a #${id} pizza`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} pizza`;
+  async remove(id: number) {
+    const pizza = await this.pizzaRepository.findOne({where:{id}})
+    if(!pizza){
+      throw new NotFoundException('Pizza no encontrada.')
+    }
+    await this.pizzaRepository.remove(pizza)
+    
   }
 }
