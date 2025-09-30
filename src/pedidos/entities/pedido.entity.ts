@@ -1,4 +1,6 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+import { Cliente } from "src/clientes/entities/cliente.entity";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+
 
 @Entity()
 export class Pedido {
@@ -15,6 +17,11 @@ export class Pedido {
     @Column()
     cantidad:number;
     
-    @Column()
-    fecha:number
-}
+    @Column('timestamp')
+    fecha:Date
+
+    @ManyToOne(()=> Cliente,(cliente)=>cliente.pedido)
+
+    @JoinColumn()
+    cliente:Cliente;
+    }

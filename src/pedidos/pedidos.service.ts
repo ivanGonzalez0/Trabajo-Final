@@ -4,6 +4,7 @@ import { UpdatePedidoDto } from './dto/update-pedido.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Pedido } from './entities/pedido.entity';
 import { Repository } from 'typeorm';
+import { Cliente } from 'src/clientes/entities/cliente.entity';
 
 
 @Injectable()
@@ -11,18 +12,47 @@ export class PedidosService {
 
   constructor(
   @InjectRepository(Pedido)
-  private readonly pedidoRepository:Repository<Pedido>
+  private readonly pedidoRepository:Repository<Pedido>,
+  @InjectRepository(Cliente)
+  private readonly clienteRepository:Repository<Cliente>
+  
 ){}
 
-  async create(creatPedidoDto:CreatePedidoDto):Promise<Pedido> {
-    try{
-      const nuevoPedido = this.pedidoRepository.create(creatPedidoDto);
-      return await this.pedidoRepository.save(nuevoPedido)
-    } catch(error){
-      console.error('Error al crear Pedido',error)
-      throw new InternalServerErrorException('Error al crear Pedido')
+
+  // async create(creatPedidoDto:CreatePedidoDto,nombre_usuario:string):Promise<Pedido> {
+  //   try{
+  //     const nuevoCliente= this.clienteRepository.findOne({where:{nombre_usuario}})//busca cliente 
+  //     if(!nuevoCliente){
+  //       console.error("No existe el cliente")
+  //     }     
+  //     const nuevoPedido = this.pedidoRepository.create(creatPedidoDto);
+  //     return await this.pedidoRepository.save(nuevoPedido)
+
+  //   } catch(error){
+  //     console.error('Error al crear Pedido',error)
+  //     throw new InternalServerErrorException('Error al crear Pedido')
+  //   }
+  // }
+  async create(creatPedidoDto: CreatePedidoDto, nombre_usuario: string): Promise<Pedido> {
+  try {
+    const nuevoCliente = await this.clienteRepository.findOne({ where: { nombre_usuario } }); // 👈 await agregado
+
+    if (!nuevoCliente) {
+      console.error("No existe el cliente");
+      throw new NotFoundException("Cliente no encontrado"); // 👈 mejor manejo de error
     }
+
+    const nuevoPedido = this.pedidoRepository.create({
+      ...creatPedidoDto,
+      cliente: nuevoCliente, // 👈 asociación del cliente con el pedido
+    });
+
+    return await this.pedidoRepository.save(nuevoPedido);
+  } catch (error) {
+    console.error('Error al crear Pedido', error);
+    throw new InternalServerErrorException('Error al crear Pedido');
   }
+}
 
   async findAll():Promise <Pedido[]> {
     return await this.pedidoRepository.find();
