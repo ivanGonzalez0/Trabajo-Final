@@ -1,5 +1,6 @@
 import { Cliente } from "src/clientes/entities/cliente.entity";
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from "typeorm";
+import { Pago } from "src/pagos/entities/pago.entity";
+import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn,OneToOne } from "typeorm";
 
 
 @Entity()
@@ -21,7 +22,12 @@ export class Pedido {
     fecha:Date
 
     @ManyToOne(()=> Cliente,(cliente)=>cliente.pedido)
-
+   
     @JoinColumn()
     cliente:Cliente;
+
+    @OneToOne(()=>Pago,(pago)=>pago.pedido)
+
+    @JoinColumn()
+    pago:Pago;
     }
