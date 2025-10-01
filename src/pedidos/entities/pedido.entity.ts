@@ -1,4 +1,5 @@
 import { Cliente } from "src/clientes/entities/cliente.entity";
+import { EstadoPedido } from "src/estado_pedido/entities/estado_pedido.entity";
 import { Pago } from "src/pagos/entities/pago.entity";
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn,OneToOne } from "typeorm";
 
@@ -30,4 +31,8 @@ export class Pedido {
 
     @JoinColumn()
     pago:Pago;
-    }
+
+    @OneToOne(()=>EstadoPedido, (esPedido)=> esPedido.pedido)
+    @JoinColumn()
+    esPedido:EstadoPedido;
+}

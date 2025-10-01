@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Cliente } from './clientes/entities/cliente.entity';
 import { Pedido } from './pedidos/entities/pedido.entity';
 import { ClientesModule } from './clientes/clientes.module';
+import { EstadoPedidoModule } from './estado_pedido/estado_pedido.module';
 
 @Module({
   imports: [TypeOrmModule.forRoot({
@@ -18,7 +19,7 @@ import { ClientesModule } from './clientes/clientes.module';
       database: 'pizzaconmigo',
       autoLoadEntities:true,
       synchronize: true,}),
-PedidosModule, PagosModule,ClientesModule],
+PedidosModule, PagosModule,ClientesModule, EstadoPedidoModule,EstadoPedidoModule],
   controllers: [AppController],
   providers: [AppService],
 })
